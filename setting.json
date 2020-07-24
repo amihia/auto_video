@@ -1,0 +1,25 @@
+{
+    "API_KEY": "6gI2piIaG0DzRMTgDE6XN4S6",
+    "APP_ID": "20355681",
+    "SECRET_KEY": "yARGOWrKDHDSDIkkD1ngFNKvjvhvBWdX",
+    "character": {
+        "kp": {
+            "spd": 6,
+            "per": 1,
+            "pid": 4
+        },
+        "sma": {
+            "spd": 7,
+            "per": 4,
+            "pid": 8
+        }
+    },
+    "color": {
+        "R": 0,
+        "G": 128,
+        "B": 192
+    },
+    "_len": 23,
+    "position": 37,
+    "dhk_num": 1
+}
