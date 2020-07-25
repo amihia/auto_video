@@ -1,6 +1,11 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+
+# here put the import lib
 import json
 import tkinter as tk
-import tkinter.colorchooser
+from tkinter import colorchooser
+from tkinter import ttk
 from PIL import Image,ImageFont,ImageDraw
 from aip import AipSpeech
 import os
@@ -9,6 +14,12 @@ import cv2
 import eyed3
 from moviepy.editor import VideoFileClip,AudioFileClip,CompositeAudioClip,concatenate_videoclips
 
+#class type_system_info:
+#    def __init__(self, name):
+#        self.name = name
+#
+#system_info = type_system_info(os.name)
+
 # 加载配置
 def load_setting():
 
@@ -16,11 +27,35 @@ def load_setting():
 
     print('读取配置文件')
     setting_json=_read("setting.json")
-    if (setting_json):
-        setting=json.loads(setting_json)
+    if (setting_json):setting=json.loads(setting_json)
 
 # 保存配置
 def save_setting():
+
+    for i in tv.get_children():
+        values=tv.item(i,'values')
+        try:
+            setting['character'][values[0]]['sound']['spd']=int(values[1])
+            setting['character'][values[0]]['sound']['per']=int(values[2])
+            setting['character'][values[0]]['sound']['pid']=int(values[3])
+        except:
+            setting['character'][values[0]]={}
+            setting['character'][values[0]]['sound']={}
+            setting['character'][values[0]]['sound']['spd']=int(values[1])
+            setting['character'][values[0]]['sound']['per']=int(values[2])
+            setting['character'][values[0]]['sound']['pid']=int(values[3])
+    
+    #删除多余的行
+    name_judge={}
+    for i in setting['character']:
+        name_judge[i]=1
+        for j in tv.get_children():
+            values=tv.item(j,'values')
+            if(values[0]==i):
+                name_judge[i]=0
+                break
+    for i in name_judge:
+        if name_judge[i]:setting['character'].pop(i)
 
     setting['color']['R']=r.get()
     setting['color']['G']=g.get()
@@ -72,10 +107,52 @@ def _read(path):
 # 颜色选择
 def choose_color():
 
-    a1 = tkinter.colorchooser.askcolor(color='red', title='选择字体颜色')
-    r.set(int(a1[0][0]))
-    g.set(int(a1[0][1]))
-    b.set(int(a1[0][2]))
+    ac = colorchooser.askcolor(color='red', title='选择字体颜色')
+    r.set(int(ac[0][0]))
+    g.set(int(ac[0][1]))
+    b.set(int(ac[0][2]))
+
+# 添加角色
+def new_row():
+
+        tv.insert('', len(tv.get_children()),values=("pc",0,5,5,1))
+        tv.update()
+
+# 删除角色
+def delete_row():
+    
+    try:
+        tv.delete(tv.selection()[0])
+        tv.update()
+    except:
+        pass
+
+# 编辑单元格
+def set_cell_value(event): 
+
+    for item in tv.selection():
+        item_text = tv.item(item, "values")
+
+    column= tv.identify_column(event.x)# 列
+    row = tv.identify_row(event.y)  # 行
+    
+    try:
+        cn = int(str(column).replace('#',''))
+        rn = int(str(row).replace('I',''))
+        edit = tk.Text(root,width=10,height = 1)
+        edit.place(x=20+(cn-1)*100, y=165+rn*20)
+        
+        def save_edit(event):
+            tv.set(item, column=column, value=edit.get(0.0, "end").split('\n')[0])
+            edit.destroy()
+        
+        def quit_edit(event):
+            edit.destroy()
+
+        edit.bind('<Return>',save_edit)
+        edit.bind('<Leave>',quit_edit)
+    except:
+        pass
 
 # 逐帧合成
 def create_frame(num,player_name,text):
@@ -97,15 +174,15 @@ def create_frame(num,player_name,text):
     # 语音合成
     client = AipSpeech(setting["APP_ID"], setting["API_KEY"], setting["SECRET_KEY"])
     try:
-        result = client.synthesis(text,'zh', 1,setting['character'][player_name])
+        result = client.synthesis(text,'zh', 1,setting['character'][player_name]['sound'])
     except: 
         result = client.synthesis(text,'zh', 1)
 
     if not isinstance(result, dict):
-        with open(r'sound/'+str(num)+'.mp3', 'wb') as f:
+        with open('sound/'+str(num)+'.mp3', 'wb') as f:
             f.write(result)
     else:
-        _print("语音合成出错")
+        print("语音合成出错")
         sys.exit()
 
     # 对话框与背景大小调整  
@@ -128,7 +205,7 @@ def create_frame(num,player_name,text):
     draw=ImageDraw.Draw(hk)
     draw.text((int(bgx/30),int(bgy/60*setting["position"])),player_name,font=_font)
 
-    textlen=_len.get()
+    textlen=setting['_len']
     if(len(text)>=textlen):
         text0=[]
         numn=int(len(text)/textlen)+1
@@ -218,9 +295,6 @@ def begin():
     audio_add(lenlist)
 
     print("合成成功")
-    
-    l8=tk.Label(root,text="合成成功,视频zc0.avi——zc"+str(len(lenlist)-1)+".avi已保存到video文件夹中\n再次使用请重启程序",bg="white",height=8,width=67)
-    l8.place(x=10,y=250)
 
 if __name__== '__main__':
 
@@ -304,15 +378,43 @@ if __name__== '__main__':
         e7=tk.Entry(root,width=55,textvariable=SECRET_KEY)
         e7.place(x=90,y=210)
 
-        #信息框
-        l8=tk.Label(root,text="",bg="white",height=8,width=67)
-        l8.place(x=10,y=250)
-
         b1=tk.Button(root,text="开始合成",command=begin)
         b1.place(x=420,y=400)
 
-        root.geometry('520x440')
+        b2=tk.Button(root,text="选择颜色",command=choose_color)
+        b2.place(x=90,y=45)
+
+        # 表格
+        columns=("角色名","语速","发音人","音调")
+        tv = ttk.Treeview(root, height=6, show="headings", columns=columns)  
+        
+        for i in columns:
+            tv.heading(i, text=i) # 显示表头
+            tv.column(i, width=100, anchor='center') # 表示列,不显示
+        
+        tv.place(x=10,y=250)
+        sb = ttk.Scrollbar(root,command=tv.yview)
+        sb.pack(side="right", fill="y")
+        tv.configure(yscrollcommand=sb.set)
+
+        # 写入数据
+        ans=1
+        for i in setting['character']: 
+            tv.insert('', ans, values=(i,setting['character'][i]['sound']['spd'],setting['character'][i]['sound']['per'],
+            setting['character'][i]['sound']['pid']))
+            ans+=1
+
+         # 双击左键进入编辑
+        tv.bind('<Double-1>', set_cell_value)
+
+        b3=ttk.Button(root, text='添加角色', width=15, command=new_row)
+        b3.place(x=20,y=403)
+
+        b4=ttk.Button(root, text='删除角色', width=15, command=delete_row)
+        b4.place(x=150,y=403)
+        root.geometry('530x440')
         root.title("跑团自动视频生成")
+        root.resizable(width=False, height=False)
         root.mainloop()
     else:
         begin()
