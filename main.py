@@ -34,6 +34,37 @@ def load_setting():
         print('读取配置文件失败')
     setting=json.loads(setting_json)
 
+# 加载剧本
+def load_log(path):
+
+    print('读取剧本')
+    try:
+        fp=open(path,'r',encoding='utf-8')
+        text=fp.read()
+        fp.close()
+
+        # 分割文本
+        try:
+            text=text.split("\n\n")
+            num=len(text)
+            bg_list=[]
+            i=0
+            while i<num:
+                text[i]=text[i].split("\n")
+                if text[i][0]=='bg':
+                    num-=1
+                    bg_list.append(text[i][1])
+                    text.pop(i)
+                    text[i]=text[i].split("\n")
+                else:
+                    bg_list.append(bg_list[i-1])
+                i+=1
+            return num,text,bg_list
+        except:
+            print("剧本格式错误")
+    except:
+        print('读取剧本失败')
+
 # 保存配置
 def save_setting():
 
@@ -153,7 +184,7 @@ def set_cell_value(event):
         pass
 
 # 逐帧合成
-def create_frame(num,player_name,text):
+def create_frame(num,player_name,text,bg):
     
     # 立绘
     try:
@@ -173,7 +204,7 @@ def create_frame(num,player_name,text):
 
     # 背景
     try:
-        bg= Image.open("img/bg.jpg")
+        bg= Image.open("img/"+bg+".jpg")
     except:
         bg= Image.open("img/default/bg.jpg")
     # 语音合成
@@ -264,27 +295,18 @@ def begin():
 
     file_clear()
 
-    save_setting()
+    if gui_flag:save_setting()
 
-    msg=_read("text.txt")
-    if(msg=="error"):
-        print("打开text.txt出错")
-        return
-
-    try:
-        msg=msg.split("\n\n")
-        num=len(msg)
-        for i in range(len(msg)):
-            msg[i]=msg[i].split("\n")
-    except:
-        print("text.txt格式错误")
-        return
+    log=load_log(log_file)
+    num=log[0]
+    msg=log[1]
+    bg_list=log[2]
 
     # 逐帧合成
     print("开始合成，一共有"+str(len(msg))+"帧")
-    for i in range(len(msg)):
+    for i in range(num):
         print("开始合成第"+str(i+1)+"帧")
-        create_frame(i,msg[i][0],msg[i][1])
+        create_frame(i,msg[i][0],msg[i][1],bg_list[i])
     #填充len_list
     lenlist=[]
     for i in range(num):
@@ -304,7 +326,7 @@ if __name__== '__main__':
 
     gui_flag=1
 
-    log_file="log.txt"
+    log_file="text.txt"
 
     load_setting()
 

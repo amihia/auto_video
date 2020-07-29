@@ -4,17 +4,17 @@
     "SECRET_KEY": "yARGOWrKDHDSDIkkD1ngFNKvjvhvBWdX",
     "character": {
         "kp": {
-            "sound":{
-            "spd": 6,
-            "per": 1,
-            "pid": 4
+            "sound": {
+                "spd": 6,
+                "per": 1,
+                "pid": 4
             }
         },
         "sma": {
-            "sound":{
-            "spd": 7,
-            "per": 4,
-            "pid": 8
+            "sound": {
+                "spd": 7,
+                "per": 4,
+                "pid": 8
             }
         }
     },
