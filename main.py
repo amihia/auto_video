@@ -4,12 +4,12 @@
 # here put the import lib
 import json
 import tkinter as tk
+from tkinter import filedialog
 from tkinter import colorchooser
 from tkinter import ttk
 from PIL import Image,ImageFont,ImageDraw
 from aip import AipSpeech
 import os
-import sys
 import cv2
 import eyed3
 from moviepy.editor import VideoFileClip,AudioFileClip,CompositeAudioClip,concatenate_videoclips
@@ -24,10 +24,15 @@ from moviepy.editor import VideoFileClip,AudioFileClip,CompositeAudioClip,concat
 def load_setting():
 
     global setting
-
+   
     print('读取配置文件')
-    setting_json=_read("setting.json")
-    if (setting_json):setting=json.loads(setting_json)
+    try:
+        fp=open("setting.json",'r',encoding='utf-8')
+        setting_json=fp.read()
+        fp.close()
+    except:
+        print('读取配置文件失败')
+    setting=json.loads(setting_json)
 
 # 保存配置
 def save_setting():
@@ -71,7 +76,7 @@ def save_setting():
     print("配置保存成功")
 
 # 清理残留文件
-def _clear():
+def file_clear():
 
     print('清理上次残留文件')
     if(os.path.exists("frame")):
@@ -92,18 +97,6 @@ def _clear():
     else:
         os.mkdir("video")
 
-# 文件读取
-def _read(path):
-
-    try:
-        f=open(path,"r",encoding="utf-8")
-        x=f.read()
-        f.close()
-        return x
-    except:
-        print('读取'+path+'失败')
-        return 0
-
 # 颜色选择
 def choose_color():
 
@@ -111,6 +104,11 @@ def choose_color():
     r.set(int(ac[0][0]))
     g.set(int(ac[0][1]))
     b.set(int(ac[0][2]))
+
+def select_file():
+
+    global log_file
+    log_file = filedialog.askopenfilenames(title="请选择剧本文件", filetypes=[("Text", "*.txt"), ("All Files", "*")])[0]
 
 # 添加角色
 def new_row():
@@ -159,7 +157,14 @@ def create_frame(num,player_name,text):
     
     # 立绘
     try:
-        player= Image.open("img/"+player_name+".png")
+        try:
+            character= Image.open("image/"+player_name+".png")
+            player_name=player_name.split("(")[0]
+            player_name=player_name.split("（")[0]
+        except:
+            player_name=player_name.split("(")[0]
+            player_name=player_name.split("（")[0]
+            character= Image.open("image/"+player_name+".png")
     except:
         if(player_name=="kp"):
             player= Image.open("img/default/kp.png")
@@ -183,7 +188,6 @@ def create_frame(num,player_name,text):
             f.write(result)
     else:
         print("语音合成出错")
-        sys.exit()
 
     # 对话框与背景大小调整  
     dhk= Image.open("img/default/dhk"+str(dhk_num.get())+".png")
@@ -258,7 +262,7 @@ def audio_add(lenlist):
 # 无GUI生成
 def begin():
 
-    _clear()
+    file_clear()
 
     save_setting()
 
@@ -299,6 +303,8 @@ def begin():
 if __name__== '__main__':
 
     gui_flag=1
+
+    log_file="log.txt"
 
     load_setting()
 
@@ -412,6 +418,13 @@ if __name__== '__main__':
 
         b4=ttk.Button(root, text='删除角色', width=15, command=delete_row)
         b4.place(x=150,y=403)
+
+        menubar = tk.Menu(root)
+        filemenu = tk.Menu(menubar, tearoff=False)
+        menubar.add_cascade(label="文件", menu=filemenu)
+        filemenu.add_command(label="导入文件", command=select_file)
+
+        root.config(menu=menubar)
         root.geometry('530x440')
         root.title("跑团自动视频生成")
         root.resizable(width=False, height=False)
