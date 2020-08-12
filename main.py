@@ -227,7 +227,9 @@ def create_frame(num, player_name, text, bg):
     # dialog_frame = dialog_frame.resize((bgx, int(bgx / dialog_frame_x * dialog_frame_y / 5 * 4)), Image.BILINEAR)
     dialog_frame = dialog_frame.resize((bgx, int(0.75 * bgy)), Image.BILINEAR)  # 固定对话框Y坐标起始于画面3/4处
     dialog_frame_x, dialog_frame_y = dialog_frame.size
-    _font = ImageFont.truetype('simhei.ttf', int(bgy / 20))
+
+    font_size = int(bgy / 20)   # 计算字体大小
+    _font = ImageFont.truetype('simhei.ttf', font_size)
 
     main_canvas = bg
     playerx, playery = player.size
@@ -241,16 +243,19 @@ def create_frame(num, player_name, text, bg):
     draw = ImageDraw.Draw(main_canvas)
     draw.text((int(bgx / 30), int(bgy / 60 * setting["position"])), player_name, font=_font)
 
-    textlen = setting['_len']
+    textlen = setting['_len']  # 调取每行文字数的输入
+    margin = 2 * font_size  # 设置文字距离对话框边缘两个单字大小
+    if textlen == 0:
+        textlen = int((dialog_frame_x - margin) / font_size)  # 将每行文字数与对话框长度绑定
     if (len(text) >= textlen):
-        text0 = []
-        numn = int(len(text) / textlen) + 1
-        for i in range(numn):
+        formatted_text = []
+        line_num = int(len(text) / textlen) + 1
+        for i in range(line_num):
             if ((i + 1) * textlen > len(text) - 1):
-                text0.append(text[i * textlen:])
+                formatted_text.append(text[i * textlen:])
             else:
-                text0.append(text[i * textlen:(i + 1) * textlen])
-        text = text0
+                formatted_text.append(text[i * textlen:(i + 1) * textlen])
+        text = formatted_text
     else:
         text = [text]
     color = tuple(setting['color'].values())
