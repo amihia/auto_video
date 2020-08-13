@@ -224,7 +224,7 @@ def create_frame(num, player_name, text, bg):
     dialog_frame = Image.open("img/default/dhk" + str(dhk_num.get()) + ".png")
     bgx, bgy = bg.size
     dialog_frame_x, dialog_frame_y = dialog_frame.size
-    dialog_frame = dialog_frame.resize((bgx, int(bgx / dialog_frame_x * dialog_frame_y / 5 * 4)), Image.BILINEAR)
+    dialog_frame = dialog_frame.resize((bgx, int(0.75 * bgy)), Image.BILINEAR)  # 固定对话框Y坐标起始于画面3/4处
     dialog_frame_x, dialog_frame_y = dialog_frame.size
     _font = ImageFont.truetype('simhei.ttf', int(bgy / 20))
 
