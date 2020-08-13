@@ -221,35 +221,35 @@ def create_frame(num, player_name, text, bg):
         print("语音合成出错")
 
     # 对话框与背景大小调整  
-    dhk = Image.open("img/default/dhk" + str(dhk_num.get()) + ".png")
+    dialog_frame = Image.open("img/default/dhk" + str(dhk_num.get()) + ".png")
     bgx, bgy = bg.size
-    dhkx, dhky = dhk.size
-    dhk = dhk.resize((bgx, int(bgx / dhkx * dhky / 5 * 4)), Image.BILINEAR)
-    dhkx, dhky = dhk.size
+    dialog_frame_x, dialog_frame_y = dialog_frame.size
+    dialog_frame = dialog_frame.resize((bgx, int(bgx / dialog_frame_x * dialog_frame_y / 5 * 4)), Image.BILINEAR)
+    dialog_frame_x, dialog_frame_y = dialog_frame.size
     _font = ImageFont.truetype('simhei.ttf', int(bgy / 20))
 
-    hk = bg
+    main_canvas = bg
     playerx, playery = player.size
     player = player.resize((int((bgy / 6 * 5) / playery * playerx), int(bgy / 6 * 5)), Image.BILINEAR)
     playerx, playery = player.size
     try:
-        hk.paste(player, (int(bgx / 30), int(bgy - playery - (bgy / 6))), mask=player.split()[3])
+        main_canvas.paste(player, (int(bgx / 30), int(bgy - playery - (bgy / 6))), mask=player.split()[3])
     except:
-        hk.paste(player, (int(bgx / 30), int(bgy - playery - (bgy / 6))))
-    hk.paste(dhk, (0, bgy - dhky), mask=dhk.split()[3])
-    draw = ImageDraw.Draw(hk)
+        main_canvas.paste(player, (int(bgx / 30), int(bgy - playery - (bgy / 6))))
+    main_canvas.paste(dialog_frame, (0, bgy - dialog_frame_y), mask=dialog_frame.split()[3])
+    draw = ImageDraw.Draw(main_canvas)
     draw.text((int(bgx / 30), int(bgy / 60 * setting["position"])), player_name, font=_font)
 
     textlen = setting['_len']
     if (len(text) >= textlen):
-        text0 = []
-        numn = int(len(text) / textlen) + 1
-        for i in range(numn):
+        formatted_text = []
+        line_num = int(len(text) / textlen) + 1
+        for i in range(line_num):
             if ((i + 1) * textlen > len(text) - 1):
-                text0.append(text[i * textlen:])
+                formatted_text.append(text[i * textlen:])
             else:
-                text0.append(text[i * textlen:(i + 1) * textlen])
-        text = text0
+                formatted_text.append(text[i * textlen:(i + 1) * textlen])
+        text = formatted_text
     else:
         text = [text]
     color = tuple(setting['color'].values())
@@ -257,7 +257,7 @@ def create_frame(num, player_name, text, bg):
         draw.text((int(bgx / 30), int(bgy / 60 * (setting["position"] + 8 + i * 4))), text[i], color, font=_font)
 
     # 保存图片 
-    hk.save("frame/" + str(num) + ".jpg")
+    main_canvas.save("frame/" + str(num) + ".jpg")
 
 
 def create_video(lenlist):
