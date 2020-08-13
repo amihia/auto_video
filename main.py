@@ -229,6 +229,12 @@ def create_frame(num, player_name, text, bg):
     font_size = int(bgy / 20)
     _font = ImageFont.truetype('simhei.ttf', font_size)
 
+    text_pos_manual = setting["position"]  # 调取文字上下坐标的输入
+    if text_pos_manual == 0:
+        text_pos_adjusted = dialog_frame_y - 3 * font_size  # 如果用户采用自适应，将文字位置与对话框位置绑定
+    else:
+        text_pos_adjusted = int(bgy / 60 * text_pos_manual)  # 如果用户手动输入，则手动计算
+
     main_canvas = bg
     playerx, playery = player.size
     player = player.resize((int((bgy / 6 * 5) / playery * playerx), int(bgy / 6 * 5)), Image.BILINEAR)
@@ -239,7 +245,7 @@ def create_frame(num, player_name, text, bg):
         main_canvas.paste(player, (int(bgx / 30), int(bgy - playery - (bgy / 6))))
     main_canvas.paste(dialog_frame, (0, bgy - dialog_frame_y), mask=dialog_frame.split()[3])
     draw = ImageDraw.Draw(main_canvas)
-    draw.text((int(bgx / 30), int(bgy / 60 * setting["position"])), player_name, font=_font)
+    draw.text((int(bgx / 30), text_pos_adjusted), player_name, font=_font)
 
     textlen = setting['_len']  # 调取每行文字数的输入
     margin = 2 * font_size  # 设置文字距离对话框边缘两个单字大小
@@ -258,7 +264,7 @@ def create_frame(num, player_name, text, bg):
         text = [text]
     color = tuple(setting['color'].values())
     for i in range(len(text)):
-        draw.text((int(bgx / 30), int(bgy / 60 * (setting["position"] + 8 + i * 4))), text[i], color, font=_font)
+        draw.text((int(bgx / 30), int(text_pos_adjusted + 2.25 * font_size + i * bgy / 15)), text[i], color, font=_font)
 
     # 保存图片 
     main_canvas.save("frame/" + str(num) + ".jpg")
